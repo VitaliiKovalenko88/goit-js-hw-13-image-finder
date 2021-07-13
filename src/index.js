@@ -11,12 +11,19 @@ const refs = {
 refs.input.addEventListener('input',debounce(onSearch, 500) )
 
 function onSearch(event) {
+  event.preventDefault();
   // clearCardContainer();
   newImages.query = event.target.value;
   // if (!newImages.query) {
   //   showInfo();
   //   return;
   // }
- 
-  // fetchImages();
+
+  fetchImages();
+}
+
+function fetchImages() {
+  newImages.fetchImages().then(data => {
+    console.log(data);
+  })
 }
