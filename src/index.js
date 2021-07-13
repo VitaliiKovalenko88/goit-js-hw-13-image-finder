@@ -1,6 +1,6 @@
-// import './sass/main.scss';
+import './sass/main.scss';
 import  NewsImages from './js/pixabay-servise.js'
-
+import { debounce } from 'lodash';
 const newImages = new NewsImages();
 
 const refs = {
@@ -8,7 +8,7 @@ const refs = {
   container: document.querySelector('.search-form'),
 };
 
-refs.input.addEventListener('input',onSearch)
+refs.input.addEventListener('input',debounce(onSearch, 500) )
 
 function onSearch(event) {
   // clearCardContainer();
@@ -17,8 +17,6 @@ function onSearch(event) {
   //   showInfo();
   //   return;
   // }
-  newImages.fetchImages().then(data => {
-    console.log(data);
-  })
+ 
   // fetchImages();
 }
