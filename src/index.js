@@ -1,8 +1,11 @@
 import './sass/main.scss';
 import NewsImages from './js/pixabay-servise.js';
-import { debounce } from 'lodash';
 import 'material-icons/iconfont/material-icons.css';
+import { Notify } from 'notiflix/build/notiflix-notify-aio';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 const newImages = new NewsImages();
+Notify.success('What are you looking for?:)');
 
 const refs = {
   input: document.querySelector('.js-input'),
@@ -12,21 +15,8 @@ const refs = {
   loadBtn: document.querySelector('.load-more-btn'),
 };
 
-function onSearch(e) {
-  e.preventDefault();
-  // clearCardContainer();
-  newImages.query = e.currentTarget.elements.query.value;
-  console.log(newImages.query);
-  // if (!newImages.query) {
-  //   showInfo();
-  //   return;
-  // }
-
-  fetchImages();
-}
-
 const clearGalleryContainer = () => {
-  refs.gallery.innerHTML = '';
+  refs.galleryEl.innerHTML = '';
 };
 
 const markupPhoto = ({
@@ -39,8 +29,8 @@ const markupPhoto = ({
   tags,
 }) => {
   return `<li class="images-item">
-            <div class="photo-card">
-              <img src="${webformatURL}" alt="${tags}" width="360" height="250" data-large-img-src="${largeImageURL}" />
+            <a class="photo-card" href="${largeImageURL}">
+              <img src="${webformatURL}" alt="${tags}" width="310" height="230"  />
                 <div class="stats">
                  <p class="stats-item">
                   <i class="material-icons">thumb_up</i>
@@ -59,20 +49,65 @@ const markupPhoto = ({
                    ${downloads}
                  </p>
                 </div>
-            </div>
+            </a>
           </li>`;
 };
 
 const createMarkupGallery = img => {
   const gallery = img.map(markupPhoto).join();
   refs.galleryEl.insertAdjacentHTML('afterbegin', gallery);
-};
-
-const fetchImages = () => {
-  newImages.fetchImages().then(data => {
-    createMarkupGallery(data);
-    console.log(data);
+  const lightbox = new SimpleLightbox('.gallery a', {
+    captionsData: 'alt',
+    captionDelay: 250,
   });
 };
 
-refs.form.addEventListener('submit', debounce(onSearch, 500));
+const onFetchImages = () => {
+  newImages.fetchImages().then(({ hits }) => {
+    if (hits.length === 0) {
+      Notify.warning(
+        'Sorry, there are no images matching your search query. Please try again.',
+      );
+      return;
+    }
+    if (newImages.query === '') {
+      clearGalleryContainer();
+      // showLoadBtn();
+      Notify.failure("You haven't written anything yet!!!");
+      return;
+    }
+    newImages.resetPage();
+
+    // showLoadBtn();
+
+    createMarkupGallery(hits);
+  });
+};
+
+// const showLoadBtn = () => {
+//   if (refs.loadBtn.classList.contains('is-hidden')) {
+//     refs.loadBtn.classList.add('is-hidden');
+//   }
+//   refs.loadBtn.classList.remove('is-hidden');
+// };
+
+const onSearch = e => {
+  e.preventDefault();
+  const searchWord = e.currentTarget.elements.query.value.trim();
+  newImages.query = searchWord;
+
+  if (newImages.query === '') {
+    clearGalleryContainer();
+    refs.loadBtn.classList.remove('is-hidden');
+    Notify.failure("You haven't written anything yet!!!");
+    return;
+  }
+  newImages.resetPage();
+
+  showLoadBtn();
+
+  createMarkupGallery(hits);
+  onFetchImages();
+};
+
+refs.form.addEventListener('submit', onSearch);

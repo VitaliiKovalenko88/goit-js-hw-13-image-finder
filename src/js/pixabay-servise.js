@@ -13,9 +13,10 @@ export default class NewsImages {
       .then(response => {
         return response.json();
       })
-      .then(({ hits }) => {
+      .then(({ hits, totalHits }) => {
+        console.log({ hits, totalHits });
         this.incrementPage();
-        return hits;
+        return { hits, totalHits };
       });
   }
   incrementPage() {
