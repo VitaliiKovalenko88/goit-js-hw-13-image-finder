@@ -12,7 +12,7 @@ const refs = {
   form: document.querySelector('.search-form'),
   galleryEl: document.querySelector('.gallery'),
   searchBtn: document.querySelector('#search-btn'),
-  loadBtn: document.querySelector('.load-more-btn'),
+  loadMoreBtn: document.querySelector('.load-more-btn'),
 };
 
 const clearGalleryContainer = () => {
@@ -63,33 +63,28 @@ const createMarkupGallery = img => {
 };
 
 const onFetchImages = () => {
-  newImages.fetchImages().then(({ hits }) => {
-    if (hits.length === 0) {
-      Notify.warning(
-        'Sorry, there are no images matching your search query. Please try again.',
+  newImages
+    .fetchImages()
+    .then(({ hits, totalHits }) => {
+      if (hits.length === 0) {
+        Notify.warning(
+          'Sorry, there are no images matching your search query. Please try again.',
+        );
+        return;
+      }
+
+      refs.loadMoreBtn.classList.remove('is-hidden');
+      createMarkupGallery(hits);
+    })
+    .catch(error => {
+      console.log(error);
+
+      refs.loadMoreBtn.classList.add('is-hidden');
+      Notify.failure(
+        "We're sorry, but you've reached the end of search results.",
       );
-      return;
-    }
-    if (newImages.query === '') {
-      clearGalleryContainer();
-      // showLoadBtn();
-      Notify.failure("You haven't written anything yet!!!");
-      return;
-    }
-    newImages.resetPage();
-
-    // showLoadBtn();
-
-    createMarkupGallery(hits);
-  });
+    });
 };
-
-// const showLoadBtn = () => {
-//   if (refs.loadBtn.classList.contains('is-hidden')) {
-//     refs.loadBtn.classList.add('is-hidden');
-//   }
-//   refs.loadBtn.classList.remove('is-hidden');
-// };
 
 const onSearch = e => {
   e.preventDefault();
@@ -98,16 +93,14 @@ const onSearch = e => {
 
   if (newImages.query === '') {
     clearGalleryContainer();
-    refs.loadBtn.classList.remove('is-hidden');
+    refs.loadMoreBtn.classList.add('is-hidden');
     Notify.failure("You haven't written anything yet!!!");
     return;
   }
   newImages.resetPage();
-
-  showLoadBtn();
-
-  createMarkupGallery(hits);
+  clearGalleryContainer();
   onFetchImages();
 };
 
 refs.form.addEventListener('submit', onSearch);
+refs.loadMoreBtn.addEventListener('click', onFetchImages);

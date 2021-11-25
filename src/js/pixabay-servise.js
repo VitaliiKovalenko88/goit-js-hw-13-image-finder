@@ -14,7 +14,6 @@ export default class NewsImages {
         return response.json();
       })
       .then(({ hits, totalHits }) => {
-        console.log({ hits, totalHits });
         this.incrementPage();
         return { hits, totalHits };
       });
